@@ -190,14 +190,6 @@ export default {
     placeholder: {
       type: String,
       default: null
-    },
-    valueKey: {
-      type: String,
-      default: 'id'
-    },
-    titleKey: {
-      type: String,
-      default: 'name'
     }
   },
 
