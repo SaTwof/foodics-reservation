@@ -14,7 +14,6 @@
           class="
             flex
             min-h-full
-            items-end
             justify-center
             p-4
             text-center
