@@ -138,6 +138,12 @@ export default {
         ],
         []
       )
+    },
+    tables() {
+      return this.branch.sections.reduce(
+        (result, section) => [...result, ...section.tables],
+        []
+      )
     }
   },
 
@@ -170,17 +176,26 @@ export default {
         )
       )
     },
+    async handleTableReservations() {
+      await Promise.allSettled(
+        this.tables
+          .filter(
+            ({ id, accepts_reservations }) =>
+              (!accepts_reservations && this.selectedTables.includes(id)) ||
+              (accepts_reservations && !this.selectedTables.includes(id))
+          )
+          .map(({ id }) =>
+            api.put(`/tables/${id}`, {
+              accepts_reservations: this.selectedTables.includes(id)
+            })
+          )
+      )
+    },
     async onClickSaveBranch() {
       try {
         this.updateBranchLoading = true
 
-        await Promise.allSettled(
-          this.selectedTables.map((id) =>
-            api.put(`/tables/${id}`, {
-              accepts_reservations: true
-            })
-          )
-        )
+        await this.handleTableReservations()
 
         await api.put(`/branches/${this.branch.id}`, {
           reservation_times: this.reservationTimes,
@@ -197,14 +212,8 @@ export default {
       }
     },
     async onClickDisableReservation() {
-      const tables = this.branch.sections.reduce(
-        (result, section) => [
-          ...result,
-          ...section.tables.filter(
-            ({ accepts_reservations }) => accepts_reservations
-          )
-        ],
-        []
+      const tables = this.tables.filter(
+        ({ accepts_reservations }) => accepts_reservations
       )
 
       this.disableReservationLoading = true
@@ -217,6 +226,7 @@ export default {
             })
           )
         )
+
         await api.put(`/branches/${this.branch.id}`, {
           accepts_reservations: false
         })
